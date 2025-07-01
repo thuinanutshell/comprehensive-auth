@@ -9,6 +9,7 @@
 - [Session-based Authentication](#session-based-authentication)
 - [JSON Web Token Authentication](#json-web-token-authentication)
 - [OAuth Authentication](#oauth-authentication)
+- [Performance Testing](#performance-testing)
 
 I realized how much I used to struggle in developing the authentication feature for my applications. Such a simple feature caused a lot of headaches, and I am not ashamed to admit that. Because authentication is so integral in many applications. I am curious about how I could create one similar to that. A comprehensive authentication feature will need to have the following functionalities.
 
@@ -38,3 +39,5 @@ I realized how much I used to struggle in developing the authentication feature 
 ## Session-based Authentication
 ## JSON Web Token Authentication
 ## OAuth Authentication
+
+# Performance Testing
