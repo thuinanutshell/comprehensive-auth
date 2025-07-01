@@ -15,7 +15,7 @@ def init_db():
 @app.cli.command()
 @with_appcontext
 def create_tables():
-    from models.session_model import db
+    from app.database import db
     db.create_all()
     click.echo("Tables created")
 

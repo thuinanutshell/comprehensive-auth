@@ -9,7 +9,7 @@ from flask_login import (
 from app.models.session_model import SessionUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
-from app import db
+from app.database import db
 
 bp_session = Blueprint("session_auth", __name__)
 login_manager = LoginManager()
