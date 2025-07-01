@@ -6,7 +6,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from app.models.session_model import db, User
+from app.models.session_model import db, SessionUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 
@@ -17,7 +17,7 @@ login_manager = LoginManager()
 @login_manager.user_loader
 def load_user(user_id):
     # Retrieve the id of a user (id must be a string)
-    return User.query.get(user_id)
+    return SessionUser.query.get(user_id)
 
 
 @bp_session.route("/register", methods=["POST"])
@@ -36,13 +36,13 @@ def register():
             return jsonify({"error": f"{field} is required"}), 400
 
     # Check duplicate fields (username or email)
-    if User.query.filter_by(username=user_info["username"]).first():
+    if SessionUser.query.filter_by(username=user_info["username"]).first():
         return jsonify({"error": "Username already exists"}), 409
-    if User.query.filter_by(email=user_info["email"]).first():
+    if SessionUser.query.filter_by(email=user_info["email"]).first():
         return jsonify({"error": "Email already exists"}), 409
 
     password_hash = generate_password_hash(user_info["password"])
-    new_user = User(
+    new_user = SessionUser(
         first_name=user_info["first_name"],
         last_name=user_info["last_name"],
         username=user_info["username"],
@@ -66,10 +66,10 @@ def login():
     ]  # identifier can be either email or username
     login_info = {field: data.get(field) for field in required_fields}
 
-    existing_user = User.query.filter(
+    existing_user = SessionUser.query.filter(
         or_(
-            User.username == login_info["identifier"],
-            User.email == login_info["identifier"],
+            SessionUser.username == login_info["identifier"],
+            SessionUser.email == login_info["identifier"],
         )
     ).first()
     if existing_user is None:
@@ -99,7 +99,7 @@ def logout():
 @bp_session.route("/profile/<string:user_id>", methods=["GET"])
 @login_required
 def get_profile(user_id):
-    authenticated_user = User.query.filter_by(id=user_id).first()
+    authenticated_user = SessionUser.query.filter_by(id=user_id).first()
     user_profile = {
         "First Name": authenticated_user.first_name,
         "Last Name": authenticated_user.last_name,

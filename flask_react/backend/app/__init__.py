@@ -2,6 +2,7 @@ from flask import Flask
 from flask_migrate import Migrate
 from app.models.session_model import db
 from app.api.session_api import login_manager, bp_session
+from app.api.jwt_api import jwt_manager, bp_jwt
 from config import DevelopmentConfig, TestingConfig, ProductionConfig
 import os
 
@@ -31,11 +32,13 @@ def create_app(config=None):
 
     # Initialize extensions
     login_manager.init_app(app)
+    jwt_manager.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)
 
     # Register blueprints
-    app.register_blueprint(bp_session)
+    app.register_blueprint(bp_session, url_prefix='/api/session')
+    app.register_blueprint(bp_jwt, url_prefix='/api/jwt')
     
     @app.route('/')
     def check():

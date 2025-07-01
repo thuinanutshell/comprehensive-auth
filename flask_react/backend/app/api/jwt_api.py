@@ -4,8 +4,9 @@ from flask_jwt_extended import (
     get_jwt_identity,
     jwt_required,
     JWTManager,
+    get_jwt,
 )
-from app.models.session_model import db, User
+from app.models.session_model import db, JWTUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 import redis
@@ -27,7 +28,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     return token_in_redis is not None
 
 
-@bp_session.route("/register", methods=["POST"])
+@bp_jwt.route("/register", methods=["POST"])
 def register():
     # Get data from the user's request
     user_data = request.get_json()
@@ -43,13 +44,13 @@ def register():
             return jsonify({"error": f"{field} is required"}), 400
 
     # Check duplicate fields (username or email)
-    if User.query.filter_by(username=user_info["username"]).first():
+    if JWTUser.query.filter_by(username=user_info["username"]).first():
         return jsonify({"error": "Username already exists"}), 409
-    if User.query.filter_by(email=user_info["email"]).first():
+    if JWTUser.query.filter_by(email=user_info["email"]).first():
         return jsonify({"error": "Email already exists"}), 409
 
     password_hash = generate_password_hash(user_info["password"])
-    new_user = User(
+    new_user = JWTUser(
         first_name=user_info["first_name"],
         last_name=user_info["last_name"],
         username=user_info["username"],
@@ -63,7 +64,7 @@ def register():
     return jsonify({"message": "New user created successfully"}), 201
 
 
-@bp_session.route("/login", methods=["POST"])
+@bp_jwt.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
     remember = data.get("remember")
@@ -73,10 +74,10 @@ def login():
     ]  # identifier can be either email or username
     login_info = {field: data.get(field) for field in required_fields}
 
-    existing_user = User.query.filter(
+    existing_user = JWTUser.query.filter(
         or_(
-            User.username == login_info["identifier"],
-            User.email == login_info["identifier"],
+            JWTUser.username == login_info["identifier"],
+            JWTUser.email == login_info["identifier"],
         )
     ).first()
     if existing_user is None:
@@ -87,7 +88,8 @@ def login():
             return (
                 jsonify(
                     {
-                        "message": f"User {login_info['identifier']} logged in successfully"
+                        "message": f"User {login_info['identifier']} logged in successfully",
+                        "access_token": access_token,
                     }
                 ),
                 200,
@@ -96,7 +98,7 @@ def login():
             return jsonify({"error": "Invalid credentials"}), 401
 
 
-@app.route("/logout", methods=["DELETE"])
+@bp_jwt.route("/logout", methods=["DELETE"])
 @jwt_required()
 def logout():
     jti = get_jwt()["jti"]
@@ -104,10 +106,11 @@ def logout():
     return jsonify(msg="Access token revoked")
 
 
-@bp_session.route("/profile", methods=["GET"])
+@bp_jwt.route("/profile", methods=["GET"])
 @jwt_required()
 def get_profile():
-    current_user = get_jwt_identity()
+    current_user_id = get_jwt_identity()
+    current_user = JWTUser.query.get(current_user_id)
     user_profile = {
         "First Name": current_user.first_name,
         "Last Name": current_user.last_name,
