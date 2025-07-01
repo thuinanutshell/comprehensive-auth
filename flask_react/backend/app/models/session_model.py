@@ -1,12 +1,9 @@
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List
+from app import db
 import uuid
-
-db = SQLAlchemy()
-
 
 class SessionUser(UserMixin, db.Model):
     """Table to store user's personal information

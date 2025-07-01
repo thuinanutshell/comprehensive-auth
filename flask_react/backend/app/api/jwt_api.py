@@ -6,22 +6,23 @@ from flask_jwt_extended import (
     JWTManager,
     get_jwt,
 )
-from app.models.session_model import db, JWTUser
+from app.models.jwt_model import JWTUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 import redis
 from datetime import timedelta
+from app import db
 
 ACCESS_EXPIRES = timedelta(hours=24)
 bp_jwt = Blueprint("jwt_auth", __name__)
-jwt = JWTManager()
+jwt_manager = JWTManager()
 
 jwt_redis_blocklist = redis.StrictRedis(
     host="localhost", port=6379, db=0, decode_responses=True
 )
 
 
-@jwt.token_in_blocklist_loader
+@jwt_manager.token_in_blocklist_loader
 def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     jti = jwt_payload["jti"]
     token_in_redis = jwt_redis_blocklist.get(jti)

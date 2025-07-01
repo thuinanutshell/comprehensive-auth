@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from app.models.session_model import db
 from app.api.session_api import login_manager, bp_session
@@ -7,6 +8,7 @@ from config import DevelopmentConfig, TestingConfig, ProductionConfig
 import os
 
 migrate = Migrate()
+db = SQLAlchemy()
 
 
 def create_app(config=None):
@@ -37,10 +39,10 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     # Register blueprints
-    app.register_blueprint(bp_session, url_prefix='/api/session')
-    app.register_blueprint(bp_jwt, url_prefix='/api/jwt')
-    
-    @app.route('/')
+    app.register_blueprint(bp_session, url_prefix="/api/session")
+    app.register_blueprint(bp_jwt, url_prefix="/api/jwt")
+
+    @app.route("/")
     def check():
         return "API is running!"
 

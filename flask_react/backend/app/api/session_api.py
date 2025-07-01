@@ -6,9 +6,10 @@ from flask_login import (
     login_user,
     logout_user,
 )
-from app.models.session_model import db, SessionUser
+from app.models.session_model import SessionUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
+from app import db
 
 bp_session = Blueprint("session_auth", __name__)
 login_manager = LoginManager()
@@ -96,10 +97,10 @@ def logout():
     return jsonify({"message": "Logged out user successfully"}), 200
 
 
-@bp_session.route("/profile/<string:user_id>", methods=["GET"])
+@bp_session.route("/profile", methods=["GET"])
 @login_required
-def get_profile(user_id):
-    authenticated_user = SessionUser.query.filter_by(id=user_id).first()
+def get_profile():
+    authenticated_user = current_user
     user_profile = {
         "First Name": authenticated_user.first_name,
         "Last Name": authenticated_user.last_name,

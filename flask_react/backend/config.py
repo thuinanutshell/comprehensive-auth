@@ -6,6 +6,11 @@ class BaseConfig:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_RECORD_QUERIES = True
+    
+    # JWT Configuration
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=24)
+    JWT_ALGORITHM = "HS256"
 
 
 class DevelopmentConfig(BaseConfig):
