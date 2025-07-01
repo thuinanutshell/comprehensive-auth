@@ -6,7 +6,7 @@ from flask_jwt_extended import (
     JWTManager,
     get_jwt,
 )
-from app.models.jwt_model import JWTUser
+from app.models.jwt_model import db, JWTUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 import redis
