@@ -6,6 +6,11 @@ from app.database import db
 import uuid
 
 
+def generate_uuid():
+    """Generate a new UUID for each record"""
+    return str(uuid.uuid4())
+
+
 class SessionUser(UserMixin, db.Model):
     """Table to store user's personal information
 
@@ -20,7 +25,7 @@ class SessionUser(UserMixin, db.Model):
     """
 
     __tablename__ = "session_users"
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=False)
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False)

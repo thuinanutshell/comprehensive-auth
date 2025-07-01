@@ -11,7 +11,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 import redis
 from datetime import timedelta
-from app.database import db
 
 ACCESS_EXPIRES = timedelta(hours=24)
 bp_jwt = Blueprint("jwt_auth", __name__)

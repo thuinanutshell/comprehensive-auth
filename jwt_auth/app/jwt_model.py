@@ -1,8 +1,16 @@
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List
 from app.database import db
 import uuid
+
+db = SQLAlchemy()
+
+
+def generate_uuid():
+    """Generate a new UUID for each record"""
+    return str(uuid.uuid4())
 
 
 class JWTUser(db.Model):
@@ -19,7 +27,7 @@ class JWTUser(db.Model):
     """
 
     __tablename__ = "jwt_users"
-    id: Mapped[str] = mapped_column(String, primary_key=True, default=str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=generate_uuid)
     first_name: Mapped[str] = mapped_column(String, nullable=False)
     last_name: Mapped[str] = mapped_column(String, nullable=False)
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False)

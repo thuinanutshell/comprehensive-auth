@@ -18,17 +18,14 @@ def create_app(config=None):
 
     config_map = {
         "development": DevelopmentConfig,
-        "dev": DevelopmentConfig,
         "testing": TestingConfig,
-        "test": TestingConfig,
         "production": ProductionConfig,
-        "prod": ProductionConfig,
     }
 
     config_class = config_map.get(config.lower(), DevelopmentConfig)
     app.config.from_object(config_class)
 
-    if config.lower() in ["production", "prod"]:
+    if config.lower() in ["production"]:
         config_class.validate()
 
     # Initialize extensions
@@ -38,15 +35,10 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     # Register blueprints
-    app.register_blueprint(bp_session, url_prefix="/api/session")
     app.register_blueprint(bp_jwt, url_prefix="/api/jwt")
 
     @app.route("/")
     def check():
         return "API is running!"
-
-    if config and config.lower() in ["testing", "test"]:
-        with app.app_context():
-            db.create_all()
 
     return app

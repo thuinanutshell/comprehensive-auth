@@ -1,7 +1,8 @@
-# How to Build a Comprehensive Authentication Feature
+# How to Build a Comprehensive Authentication Feature Using Different Methods
 
-I realized how much I used to struggle in developing the authentication feature for my applications. Such a simple feature caused a lot of headaches, and I am not ashamed to admit that. Because authentication is so integral in many applications. I am curious about how I could create one similar to that. A comprehensive authentication feature will need to have these functionalities:
+I realized how much I used to struggle in developing the authentication feature for my applications. Such a simple feature caused a lot of headaches, and I am not ashamed to admit that. Because authentication is so integral in many applications. I am curious about how I could create one similar to that. A comprehensive authentication feature will need to have the following functionalities.
 
+# Features
 ## Sign Up
 ### Standard Registration
 - Use first/last names, username, email, and password
@@ -17,8 +18,12 @@ I realized how much I used to struggle in developing the authentication feature 
   - User clicks the link and is redirected to the password reset page
   - They enter their new password
   - Log in again
+
 ### OAuth Login
-- Use a Google Account, LinkedIn, GitHub, etc., to sign up
+- Use a Google Account, LinkedIn, GitHub, etc., to sign in
 
 ## Profile
 - The user should be able to change their username/email or password
+# Session-based Authentication
+# JSON Web Token Authentication (JWT)
+# OAuth Authentication (Third-Party)
