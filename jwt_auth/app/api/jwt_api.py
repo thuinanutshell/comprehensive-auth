@@ -110,7 +110,7 @@ def logout():
 @jwt_required()
 def get_profile():
     current_user_id = get_jwt_identity()
-    current_user = JWTUser.query.get(current_user_id)
+    current_user = db.session.get(JWTUser, current_user_id)
     user_profile = {
         "First Name": current_user.first_name,
         "Last Name": current_user.last_name,

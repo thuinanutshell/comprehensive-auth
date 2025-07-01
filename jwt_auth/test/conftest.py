@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import os
 from app import create_app
-from app.model import db
+from app.models.jwt_model import db
 
 
 @pytest.fixture(scope="session")

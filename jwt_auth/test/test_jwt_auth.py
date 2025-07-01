@@ -1,7 +1,7 @@
 import pytest
 import json
 from app import create_app
-from app.database import db
+from app.models.jwt_model import db
 
 
 @pytest.fixture

@@ -1,9 +1,8 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from app.database import db
-from app.api.session_api import login_manager, bp_session
 from app.api.jwt_api import jwt_manager, bp_jwt
+from app.models.jwt_model import db
 from config import DevelopmentConfig, TestingConfig, ProductionConfig
 import os
 
@@ -29,7 +28,6 @@ def create_app(config=None):
         config_class.validate()
 
     # Initialize extensions
-    login_manager.init_app(app)
     jwt_manager.init_app(app)
     db.init_app(app)
     migrate.init_app(app, db)

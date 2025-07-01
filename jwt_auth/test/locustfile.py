@@ -1,35 +1,8 @@
-"""
-Simple Performance Test: JWT vs Session Authentication
-Save this as: tests/performance/locustfile.py
-
-Usage:
-    cd flask_react/backend
-    locust -f tests/performance/locustfile.py --host=http://127.0.0.1:5001
-"""
-
 import random
 import string
 from locust import HttpUser, task, between
 
 
-# Configuration
-BASE_CONFIG = {
-    "jwt_endpoints": {
-        "register": "/api/jwt/register",
-        "login": "/api/jwt/login",
-        "profile": "/api/jwt/profile",
-        "logout": "/api/jwt/logout",
-    },
-    "session_endpoints": {
-        "register": "/api/session/register",
-        "login": "/api/session/login",
-        "profile": "/api/session/profile",
-        "logout": "/api/session/logout",
-    },
-}
-
-
-# Utility Functions
 def generate_unique_user_data():
     """Generate unique user data for registration"""
     random_suffix = "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
@@ -42,58 +15,30 @@ def generate_unique_user_data():
     }
 
 
-# Base User Class
-class BaseAuthUser(HttpUser):
-    """Base class with common authentication testing methods"""
+class JWTAuthUser(HttpUser):
+    """Test JWT-based authentication performance"""
 
-    abstract = True
     wait_time = between(1, 3)  # Wait 1-3 seconds between requests
 
     def on_start(self):
         """Called when a user starts - registers and logs in"""
         self.user_data = generate_unique_user_data()
+        self.access_token = None
         self.register_user()
         self.login_user()
 
     def register_user(self):
-        """Register a new user - implement in subclass"""
-        raise NotImplementedError
-
-    def login_user(self):
-        """Login user - implement in subclass"""
-        raise NotImplementedError
-
-    def get_profile(self):
-        """Get user profile - most frequent operation"""
-        raise NotImplementedError
-
-    def logout_and_login(self):
-        """Occasionally logout and login again"""
-        self.logout_user()
-        self.login_user()
-
-    def logout_user(self):
-        """Logout user - implement in subclass"""
-        raise NotImplementedError
-
-
-# JWT Authentication User
-class JWTAuthUser(BaseAuthUser):
-    """Test JWT-based authentication performance"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.access_token = None
-
-    def register_user(self):
-        """Register user via JWT endpoint"""
-        response = self.client.post(
-            BASE_CONFIG["jwt_endpoints"]["register"],
+        """Register a new user"""
+        with self.client.post(
+            "/api/jwt/register",
             json=self.user_data,
             name="JWT Register",
-        )
-        if response.status_code != 201:
-            print(f"JWT Registration failed: {response.status_code}")
+            catch_response=True,
+        ) as response:
+            if response.status_code == 201:
+                response.success()
+            else:
+                response.failure(f"Registration failed: {response.status_code}")
 
     def login_user(self):
         """Login via JWT and store token"""
@@ -103,146 +48,153 @@ class JWTAuthUser(BaseAuthUser):
         }
 
         with self.client.post(
-            BASE_CONFIG["jwt_endpoints"]["login"],
+            "/api/jwt/login",
             json=login_data,
             name="JWT Login",
             catch_response=True,
         ) as response:
             if response.status_code == 200:
-                self.access_token = response.json().get("access_token")
-                if not self.access_token:
+                data = response.json()
+                self.access_token = data.get("access_token")
+                if self.access_token:
+                    response.success()
+                else:
                     response.failure("No access token in response")
             else:
                 response.failure(f"Login failed: {response.status_code}")
 
-    @task(3)
+    @task(5)
     def get_profile(self):
-        """Get profile using JWT token"""
+        """Get profile using JWT token - most frequent operation"""
         if not self.access_token:
             return
 
         headers = {"Authorization": f"Bearer {self.access_token}"}
-        self.client.get(
-            BASE_CONFIG["jwt_endpoints"]["profile"],
+
+        with self.client.get(
+            "/api/jwt/profile",
             headers=headers,
             name="JWT Get Profile",
-        )
+            catch_response=True,
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+            elif response.status_code == 401:
+                # Token might be expired or invalid, try to re-login
+                response.failure("Token expired or invalid")
+                self.login_user()
+            else:
+                response.failure(f"Profile access failed: {response.status_code}")
 
-    def logout_user(self):
-        """Logout and invalidate JWT token"""
+    @task(1)
+    def logout_and_login_cycle(self):
+        """Occasionally logout and login again to test full cycle"""
         if not self.access_token:
             return
 
+        # Logout
         headers = {"Authorization": f"Bearer {self.access_token}"}
-        response = self.client.delete(
-            BASE_CONFIG["jwt_endpoints"]["logout"], headers=headers, name="JWT Logout"
-        )
-        if response.status_code == 200:
-            self.access_token = None
+        with self.client.delete(
+            "/api/jwt/logout",
+            headers=headers,
+            name="JWT Logout",
+            catch_response=True,
+        ) as response:
+            if response.status_code == 200:
+                response.success()
+                self.access_token = None
+            else:
+                response.failure(f"Logout failed: {response.status_code}")
+
+        # Login again
+        self.login_user()
+
+    def on_stop(self):
+        """Called when user stops - cleanup"""
+        if self.access_token:
+            headers = {"Authorization": f"Bearer {self.access_token}"}
+            self.client.delete("/api/jwt/logout", headers=headers, name="JWT Logout")
 
 
-# Session Authentication User
-class SessionAuthUser(BaseAuthUser):
-    """Test Session-based authentication performance"""
+class JWTStressTest(HttpUser):
+    """Stress test with rapid requests"""
 
-    def register_user(self):
-        """Register user via session endpoint"""
-        response = self.client.post(
-            BASE_CONFIG["session_endpoints"]["register"],
-            json=self.user_data,
-            name="Session Register",
-        )
-        if response.status_code != 201:
-            print(f"Session Registration failed: {response.status_code}")
+    wait_time = between(0.1, 0.5)  # Very short wait time for stress testing
 
-    def login_user(self):
-        """Login via session (cookies automatically handled)"""
+    def on_start(self):
+        """Quick setup for stress testing"""
+        self.user_data = generate_unique_user_data()
+        self.access_token = None
+
+        # Register and login
+        self.client.post("/api/jwt/register", json=self.user_data)
+
         login_data = {
             "identifier": self.user_data["email"],
             "password": self.user_data["password"],
         }
+        response = self.client.post("/api/jwt/login", json=login_data)
 
-        self.client.post(
-            BASE_CONFIG["session_endpoints"]["login"],
-            json=login_data,
-            name="Session Login",
-        )
+        if response.status_code == 200:
+            self.access_token = response.json().get("access_token")
 
-    @task(3)
-    def get_profile(self):
-        """Get profile using session cookies"""
+    @task(10)
+    def rapid_profile_access(self):
+        """Rapid profile access for stress testing"""
+        if not self.access_token:
+            return
+
+        headers = {"Authorization": f"Bearer {self.access_token}"}
         self.client.get(
-            BASE_CONFIG["session_endpoints"]["profile"], name="Session Get Profile"
-        )
-
-    def logout_user(self):
-        """Logout and clear session"""
-        self.client.post(
-            BASE_CONFIG["session_endpoints"]["logout"], name="Session Logout"
+            "/api/jwt/profile", headers=headers, name="Stress Profile Access"
         )
 
 
-# Test Scenarios
+# Choose which test to run by commenting/uncommenting
 
 
-class JWTOnlyTest(JWTAuthUser):
-    """Test only JWT authentication - uncomment to use"""
+# Normal load testing
+class LoadTest(JWTAuthUser):
+    """Normal load testing - recommended for general performance testing"""
 
     weight = 1
 
 
-# class SessionOnlyTest(SessionAuthUser):
-#     """Test only Session authentication - uncomment to use"""
+# Stress testing - uncomment to use
+# class StressTest(JWTStressTest):
+#     """High-frequency stress testing"""
 #     weight = 1
-
-# class MixedAuthTest(HttpUser):
-#     """Test both authentication methods simultaneously"""
-#     weight = 1
-#     wait_time = between(1, 3)
-
-#     def on_start(self):
-#         """Randomly assign authentication method to this user"""
-#         if random.choice([True, False]):
-#             self.auth_user = JWTAuthUser()
-#             self.auth_type = "JWT"
-#         else:
-#             self.auth_user = SessionAuthUser()
-#             self.auth_type = "Session"
-
-#         self.auth_user.client = self.client
-#         self.auth_user.on_start()
-
-#     @task(3)
-#     def get_profile(self):
-#         """Delegate profile access to auth method"""
-#         self.auth_user.get_profile()
-
-#     @task(1)
-#     def logout_and_login(self):
-#         """Delegate logout/login to auth method"""
-#         self.auth_user.logout_and_login()
 
 
 if __name__ == "__main__":
     print(
         """
-    AUTHENTICATION PERFORMANCE TESTING
-    ==================================
+    JWT AUTHENTICATION PERFORMANCE TESTING
+    =====================================
     
-    Currently configured to test: JWT Authentication Only
+    Available Test Modes:
     
-    To test different scenarios:
-    1. Comment/uncomment the test classes above
-    2. Only leave ONE test class uncommented
+    1. LoadTest (Active): 
+       - Normal user behavior simulation
+       - 1-3 second wait between requests
+       - Mix of profile access and login/logout cycles
     
-    Available tests:
-    - JWTOnlyTest: Tests only JWT authentication
-    - SessionOnlyTest: Tests only Session authentication  
-    - MixedAuthTest: Tests both methods together
+    2. StressTest (Commented): 
+       - High-frequency requests
+       - 0.1-0.5 second wait between requests
+       - Rapid profile access
     
-    Run command:
-    locust -f tests/performance/locustfile.py --host=http://127.0.0.1:5001
+    To switch modes:
+    - Comment/uncomment the test classes above
     
-    Then open: http://localhost:8089
+    Run Commands:
+    
+    Basic Test:
+    locust -f test/locustfile.py --host=http://127.0.0.1:5000
+    
+    Headless Test (10 users, 2 spawn rate, 30 seconds):
+    locust -f test/locustfile.py --host=http://127.0.0.1:5000 --users 10 --spawn-rate 2 --run-time 30s --headless
+    
+    Then open: http://localhost:8089 (for web UI)
     """
     )
