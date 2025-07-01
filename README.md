@@ -1,4 +1,14 @@
 # How to Build a Comprehensive Authentication Feature Using Different Methods
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Locust](https://img.shields.io/badge/Locust-1A1A1A?style=for-the-badge&logo=locust&logoColor=green)
+
+## Table of Contents
+- [Features](#features)
+- [Session-based Authentication](#session-based-authentication)
+- [JSON Web Token Authentication](#json-web-token-authentication)
+- [OAuth Authentication](#oauth-authentication)
 
 I realized how much I used to struggle in developing the authentication feature for my applications. Such a simple feature caused a lot of headaches, and I am not ashamed to admit that. Because authentication is so integral in many applications. I am curious about how I could create one similar to that. A comprehensive authentication feature will need to have the following functionalities.
 
@@ -23,7 +33,8 @@ I realized how much I used to struggle in developing the authentication feature 
 - Use a Google Account, LinkedIn, GitHub, etc., to sign in
 
 ## Profile
-- The user should be able to change their username/email or password
-# Session-based Authentication
-# JSON Web Token Authentication (JWT)
-# OAuth Authentication (Third-Party)
+- The user should be able to change their username/email, or password
+  
+## Session-based Authentication
+## JSON Web Token Authentication
+## OAuth Authentication
