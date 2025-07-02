@@ -82,7 +82,9 @@ def show_db_info():
 
     # Test database connection
     try:
-        result = db.session.execute("SELECT 1").scalar()
+        from sqlalchemy import text
+
+        result = db.session.execute(text("SELECT 1")).scalar()
         click.echo("✅ Database connection: OK")
 
         # Show tables

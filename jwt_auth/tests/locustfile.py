@@ -160,10 +160,7 @@ class LoadTest(JWTAuthUser):
     weight = 1
 
 
-# Stress testing - uncomment to use
-# class StressTest(JWTStressTest):
-#     """High-frequency stress testing"""
-#     weight = 1
+
 
 
 if __name__ == "__main__":

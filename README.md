@@ -37,7 +37,15 @@ I realized how much I used to struggle in developing the authentication feature 
 - The user should be able to change their username/email, or password
   
 ## Session-based Authentication
+
 ## JSON Web Token Authentication
+It initializes a connection to a Redis server running on:
+- `host="localhost"`: your local machine
+- `port=6379`: the default Redis port
+- `db=0`: the default Redis database index
+- `decode_responses=True`: ensures Redis returns strings (not bytes)
+When users log out or a token needs to be invalidated before it expires, you can't remove or "cancel" a JWT since it's stateless. So, a common solution is to store a "blocklist" of token identifiers (like the jti claim) in Redis, so your app can check against this list when validating tokens.
+
 ## OAuth Authentication
 
 # Performance Testing
