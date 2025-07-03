@@ -44,8 +44,20 @@ Because sessions are stored on the server, it gives more control to the administ
 
 ![image](https://github.com/user-attachments/assets/0efd95ac-9116-4019-a5b4-7982c959ef47)
 ### Configuration & Setup
+0. Create a virtual environment inside the `session_auth` using `python3 -m venv .venv` and activate it `. .venv/bin/activate`
+1. Create a `.env` file  with the following environment variables
+```
+# Flask Environment
+FLASK_ENV=development
 
+# Development variables
+DEV_DATABASE_URI=sqlite:///development.db
+DEV_SECRET_KEY={your-dev-secret-key}
 
+# Production variables
+PROD_DATABASE_URI=sqlite:///production.db
+PROD_SECRET_KEY={your-production-secret-key}
+```
 
 ## JSON Web Token Authentication
 ### Explanation
@@ -58,7 +70,7 @@ JSON Web Token is a standard that defines a way for parties to transmit data. Th
 ![image](https://github.com/user-attachments/assets/775a257c-1850-4670-b5d0-94d17ddc3a28)
 
 ### Configuration & Setup
-0. Create a virtual environment inside the `jwt_folder` using `python3 -m venv .venv` and activate it `. .venv/bin/activate`
+0. Create a virtual environment inside the `jwt_auth` using `python3 -m venv .venv` and activate it `. .venv/bin/activate`
 1. Create a `.env` file  with the following environment variables
 ```
 # Flask Environment
