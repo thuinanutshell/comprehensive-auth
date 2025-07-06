@@ -1,12 +1,12 @@
-# React + Vite
+# Key Learnings
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## What exactly is context?
+-  `context` helps us define the state globally, meaning **letting the parent component pass on the information to any component below it** without passing the prop explicitly.
+- Why is this useful? Because it addresses the problem of prop drilling. For example, user information like their authenticated token needs to be passed on to other tokens like dashboard, cards, etc. - any other components that are part of the protected resources.
+- There are 3 steps to use `context` in React:
+    1. **Create** a context
+    2. **Use** that context from the component that needs the data (children components)
+    3. **Provide** that context from the component that specifies the data (parent)
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Resources
+[1] https://react.dev/learn/passing-data-deeply-with-context
