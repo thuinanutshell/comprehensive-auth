@@ -18,23 +18,23 @@ I realized how much I used to struggle in developing the authentication feature 
 # Features
 ###  Sign Up
 Standard Registration
-- [ ] Use first/last names, username, email, and password
-- [ ] Confirm account via email
+- [x] Use first/last names, username, email, and password
+- [x] Confirm account via email
 ### OAuth Registration
-- [ ] Use a Google Account, LinkedIn, GitHub, etc., to sign up
+- [x] Use a Google Account, LinkedIn, GitHub, etc., to sign up
 ### Standard Login
-- [ ] Use an identifier (either username or email) and password
-- [ ] If the user forgot their password, there should be an option for them to reset their password by:
-  - [ ] Sending a link to reset their password to their registered email
-  - [ ] User clicks the link and is redirected to the password reset page
-  - [ ] They enter their new password
-  - [ ] Log in again
+- [x] Use an identifier (either username or email) and password
+- [x] If the user forgot their password, there should be an option for them to reset their password by:
+  - [x] Sending a link to reset their password to their registered email
+  - [x] User clicks the link and is redirected to the password reset page
+  - [x] They enter their new password
+  - [x] Log in again
 ### OAuth Login
-- [ ] Use a Google Account, LinkedIn, GitHub, etc., to sign in
+- [x] Use a Google Account, LinkedIn, GitHub, etc., to sign in
 
 ### Profile
-- [ ] Users should be able to change their username/email, or password
-- [ ] Users should be able to delete their accounts
+- [x] Users should be able to change their username/email, or password
+- [x] Users should be able to delete their accounts
   
 ## Session-based Authentication
 ### Explanation
