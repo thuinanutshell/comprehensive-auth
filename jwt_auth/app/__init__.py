@@ -52,8 +52,4 @@ def create_app(config=None):
         if app.config.get("TESTING"):
             db.create_all()
 
-    with app.app_context():
-        if app.config.get("TESTING"):
-            db.create_all()
-
     return app
