@@ -1,13 +1,24 @@
+# Updated imports for api.py
 from flask import Flask, Blueprint, jsonify, request, url_for, session, redirect
 from flask_jwt_extended import (
     JWTManager,
     jwt_required,
     get_jwt_identity,
     create_access_token,
+    get_jwt,
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.model import db, User
-from utils import validate_required_fields
+from model import db, User
+from utils import (
+    validate_required_fields,
+    verify_token,
+    validate_email_field,
+    validate_password_strength,
+    send_verify_email,
+    generate_verification_link,
+    send_reset_password_email,
+    generate_reset_password_link,
+)
 import google_auth_oauthlib.flow
 import os
 import json
@@ -17,7 +28,20 @@ import redis
 
 jwt = JWTManager()
 
-oauth_config = json.loads(os.environ["GOOGLE_OAUTH_SECRETS"])
+oauth_config = {
+    "web": {
+        "client_id": os.environ.get("GOOGLE_CLIENT_ID"),
+        "client_secret": os.environ.get("GOOGLE_CLIENT_SECRET"),
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "redirect_uris": [
+            os.environ.get(
+                "GOOGLE_REDIRECT_URI", "http://localhost:5000/api/auth/oauth2callback"
+            )
+        ],
+    }
+}
 
 oauth_flow = google_auth_oauthlib.flow.Flow.from_client_config(
     oauth_config,
@@ -50,15 +74,24 @@ bp_auth = Blueprint(__name__, "auth")
 def register():
     data = request.get_json()
     required_fields = ["first_name", "last_name", "username", "email", "password"]
-    
+
     error_response = validate_required_fields(data, required_fields)
     if error_response:
         return error_response
-    
-    email_error = validate_email(data.get("email"))
-    
+
+    email_error = validate_email_field(data.get("email"))
+    if email_error:
+        return jsonify({"message": f"Invalid email: {email_error}"}), 400
+
     if not validate_password_strength(data.get("password")):
-        return jsonify({"message": "Password must be at least 8 characters with uppercase, lowercase, and digit"}), 400
+        return (
+            jsonify(
+                {
+                    "message": "Password must be at least 8 characters with uppercase, lowercase, and digit"
+                }
+            ),
+            400,
+        )
 
     if User.query.filter_by(username=data.get("username")).first():
         return jsonify({"message": "Username already exists"}), 400
@@ -81,7 +114,7 @@ def register():
     db.session.commit()
 
     access_token = create_access_token(identity=new_user.id)
-    
+
     send_verify_email(new_user.email, generate_verification_link(new_user.id))
 
     return (
@@ -121,14 +154,35 @@ def login():
     access_token = create_access_token(identity=user.id)
     return jsonify({"message": "Login successful", "access_token": access_token}), 200
 
+
 # Verify email for new user
-@bp_auth.route('/verify/<token>', methods=['POST'])
+@bp_auth.route("/verify/<token>", methods=["POST"])
 def verify_email(token):
     """
     The logic here is that the user will be sent a verification link after they register
     Then, when the user clicks the link, the is_verified field will be updated to True
     """
-    
+    # Verify the token using the utility function
+    user_id, error = verify_token(token, salt="email-verification-salt", max_age=3600)
+
+    if error:
+        return jsonify({"message": "Invalid or expired verification token"}), 400
+
+    # Find the user by ID
+    user = User.query.filter_by(id=user_id).first()
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    # Check if user is already verified
+    if user.is_verified:
+        return jsonify({"message": "Email already verified"}), 400
+
+    # Update user verification status
+    user.is_verified = True
+    db.session.commit()
+
+    return jsonify({"message": "Email verified successfully"}), 200
+
 
 # OAuth
 @bp_auth.route("/login/oauth")
@@ -208,7 +262,7 @@ def logout():
 @jwt_required()
 def update_account():
     current_user_id = get_jwt_identity()
-    if not current_user:
+    if not current_user_id:
         return jsonify({"error": "User is not authenticated"}), 404
 
     data = request.get_json()
@@ -216,7 +270,7 @@ def update_account():
 
     user = User.query.filter_by(id=current_user_id).first()
     if not user:
-        jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "User not found"}), 404
 
     for field in fields:
         if data.get(field):

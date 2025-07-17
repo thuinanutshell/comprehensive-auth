@@ -7,8 +7,25 @@ Building a simple authentication component taught me a lot about React so I docu
 ## Axios
 ### Explanation
 - So your frontend needs to make some request from the client to the server. That's why we use Axios as a promise-based HTTP Client for the browser and `node.js`. 
-### How to use axios
+- Axios is a third-party library that requires `npm install axios` in order to use
+### Axios vs. fetch
+- `fetch()` is a built-in browser API which has the same functionality as `axios` - to make an http request. However, `axios` has a much cleaner syntax.
+```javascript
+// axios
+const response = await axios.post('/api/login', { username, password });
+console.log(response.data);
+
+// fetch
+const response = await fetch('/api/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username, password })
+});
+const data = await response.json();
+console.log(data);
+```
 ### Interceptors
+
 
 ## Context
 ### Explanation

@@ -2,6 +2,8 @@ import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:5000'
 axios.defaults.baseURL = BASE_URL
+
+// Configure axios to add token to every request before it is sent
 axios.interceptors.request.use(config => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -31,13 +33,9 @@ async function login(credentials) {
     }
 }
 
-async function logout(token) {
+async function logout() {
     try {
-        const response = await axios.delete('/auth/logout', {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
+        const response = await axios.delete('/auth/logout');
         return response.data;
     } catch (error) {
         console.error(error);

@@ -20,7 +20,7 @@ export default function RegisterForm() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        navigate('/')
+        navigate('/dashboard')
     }
 
     return (

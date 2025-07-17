@@ -24,7 +24,7 @@ export default function LoginForm() {
     const handleSubmit = (e) => {
         e.preventDefault();
         // The user should be navigated to the homepage if they are authenticated
-        navigate('/')
+        navigate('/dashboard')
     }
 
     return (

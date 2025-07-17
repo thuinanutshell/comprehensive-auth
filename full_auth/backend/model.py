@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String
+from sqlalchemy import Integer, String, Boolean, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 import uuid
 
@@ -7,7 +7,7 @@ db = SQLAlchemy()
 
 
 def generate_uuid():
-    return uuid.uuid4()
+    return str(uuid.uuid4())  # Convert to string for consistency
 
 
 class User(db.Model):
