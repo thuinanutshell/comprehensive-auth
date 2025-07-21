@@ -1,4 +1,3 @@
-# Updated imports for api.py
 from flask import Flask, Blueprint, jsonify, request, url_for, session, redirect
 from flask_jwt_extended import (
     JWTManager,
@@ -21,6 +20,9 @@ from utils import (
 )
 import google_auth_oauthlib.flow
 import os
+
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
 import json
 import requests
 from datetime import timedelta
@@ -51,6 +53,10 @@ oauth_flow = google_auth_oauthlib.flow.Flow.from_client_config(
         "https://www.googleapis.com/auth/userinfo.profile",
     ],
 )
+print("GOOGLE_CLIENT_ID:", os.environ.get("GOOGLE_CLIENT_ID"))
+print("GOOGLE_CLIENT_SECRET:", os.environ.get("GOOGLE_CLIENT_SECRET"))
+print("GOOGLE_REDIRECT_URI:", os.environ.get("GOOGLE_REDIRECT_URI"))
+
 
 ACCESS_EXPIRES = timedelta(hours=24)
 
@@ -66,7 +72,7 @@ def check_if_token_is_revoked(jwt_header, jwt_payload: dict):
     return token_in_redis is not None
 
 
-bp_auth = Blueprint(__name__, "auth")
+bp_auth = Blueprint("auth", __name__)
 
 
 # Traditional Registration
@@ -196,7 +202,8 @@ def login_oauth():
 @bp_auth.route("/oauth2callback")
 def oauth2callback():
     if "state" not in session or session["state"] != request.args.get("state"):
-        return jsonify({"error": "Invalid state parameter"}), 400
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+        return redirect(f"{frontend_url}/login?error=invalid_state")
 
     try:
         oauth_flow.fetch_token(authorization_response=request.url)
@@ -210,9 +217,10 @@ def oauth2callback():
         existing_user = User.query.filter_by(email=user_info["email"]).first()
         if existing_user:
             if not existing_user.is_oauth:
-                return (
-                    jsonify({"error": "Account exists with different login method"}),
-                    400,
+                # Redirect to frontend with error
+                frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+                return redirect(
+                    f"{frontend_url}/login?error=account_exists_different_method"
                 )
             user = existing_user
         else:
@@ -228,24 +236,41 @@ def oauth2callback():
             )
             db.session.add(user)
             db.session.commit()
+
         access_token = create_access_token(identity=user.id)
-        return (
-            jsonify(
-                {"message": "OAuth login successful", "access_token": access_token}
-            ),
-            200,
-        )
+
+        # Redirect to frontend with token
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+        return redirect(f"{frontend_url}/oauth/callback?token={access_token}")
 
     except Exception as e:
-        return jsonify({"error": "OAuth authentication failed"}), 400
+        # Redirect to frontend with error
+        print("❌ OAuth callback failed:", e)
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+        return redirect(f"{frontend_url}/login?error=oauth_failed")
 
 
 @bp_auth.route("/protected", methods=["GET"])
 @jwt_required()
 def protected():
-    # Access the identity of the current user
-    current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+    current_user_id = get_jwt_identity()
+    user = User.query.filter_by(id=current_user_id).first()
+
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    return (
+        jsonify(
+            {
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "username": user.username,
+                "email": user.email,
+            }
+        ),
+        200,
+    )
 
 
 # Logout user
@@ -258,7 +283,7 @@ def logout():
 
 
 # Update user's information
-@bp_auth.route("/profile", methods=["POST"])
+@bp_auth.route("/profile", methods=["PATCH"])
 @jwt_required()
 def update_account():
     current_user_id = get_jwt_identity()
@@ -267,17 +292,26 @@ def update_account():
 
     data = request.get_json()
     fields = ["first_name", "last_name", "username", "email", "password"]
-
     user = User.query.filter_by(id=current_user_id).first()
+
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    # Handle password change securely
+    if data.get("password"):
+        if not data.get("current_password"):
+            return (
+                jsonify({"error": "Current password is required to change password"}),
+                400,
+            )
+        if not check_password_hash(user.password_hash, data["current_password"]):
+            return jsonify({"error": "Current password is incorrect"}), 400
+        user.password_hash = generate_password_hash(data["password"])
+
+    # Update other fields
     for field in fields:
-        if data.get(field):
-            if field == "password":
-                setattr(user, "password_hash", generate_password_hash(data.get(field)))
-            else:
-                setattr(user, field, data.get(field))
+        if field != "password" and data.get(field):
+            setattr(user, field, data[field])
 
     db.session.commit()
     return jsonify({"message": "User information updated successfully"}), 200

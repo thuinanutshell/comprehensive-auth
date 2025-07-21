@@ -18,6 +18,14 @@ I realized how much I used to struggle in developing the authentication feature 
 
 # Features
 
+<img width="888" height="623" alt="Screenshot 2025-07-17 at 8 06 22 PM" src="https://github.com/user-attachments/assets/7a8da77b-5227-4387-a41a-dede3938e15f" />
+
+
+
+https://github.com/user-attachments/assets/b850d977-bd7f-403a-af1d-bba46228f9ab
+
+
+
 ### Sign Up
 
 Standard Registration
@@ -40,7 +48,7 @@ Standard Registration
 
 ### OAuth Login
 
-- [x] Use a Google Account sign in
+- [x] Use a Google Account sign-in
 
 ### Profile
 
@@ -156,6 +164,15 @@ python3 run.py
 ```
 
 ## OAuth Authentication
+
+OAuth2 is an authorization protocol designed to allow a website/app to access resources hosted by another web app on behalf of the user. Therefore, it involves granting access to a set of resources (like user data). OAuth also uses tokens (aka access tokens) to represent authorization
+
+<img width="1456" height="476" alt="image" src="https://github.com/user-attachments/assets/18d3231e-0c7a-49a8-a283-50c41af0637e" />
+
+<img width="1456" height="762" alt="image" src="https://github.com/user-attachments/assets/12e95e1e-140a-48aa-a9ed-2f3340510c03" />
+
+Firstly, the user sends an authorization request to the authorization server with ID and secret (also scopes and endpoint if any). Then, the authorization server authenticates the user and verifies the requested scopes and grants authorization to the client. Next, the resource owner and authorization server interact to send an access token to the user. Finally, the user uses the access token to request access to protected resources.
+
 
 # Performance Testing
 

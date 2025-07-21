@@ -4,11 +4,11 @@ from model import db
 from api import bp_auth, jwt
 import os
 from datetime import timedelta
-
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)
-
+    
     # Configuration
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "your-secret-key-here")
 
@@ -32,6 +32,8 @@ def create_app():
     )
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    
+    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
     # Initialize extensions
     db.init_app(app)
