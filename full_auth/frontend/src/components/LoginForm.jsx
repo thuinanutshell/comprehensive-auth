@@ -1,39 +1,57 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
-export default function LoginForm() {
-    // Set the initial data for the fields and the function to update them
-    const [data, setData] = useState({
-        username: '',
-        email: '',
-        password: '',
-    })
+const LoginForm = () => {
+  const { handleLogin, handleOAuthLogin, loading } = useAuth();
+  const [form, setForm] = useState({ login: '', password: '' });
+  const [message, setMessage] = useState('');
 
-    // Set the initial navigate variable
-    const navigate = useNavigate()
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const result = await handleLogin(form);
+    setMessage(result.message);
+  };
 
-    // Set the function to update the data based on the event
-    const handleChange = (e) => {
-        setData({
-            ...data,
-            [e.target.name]: e.target.value
-        })
-    }
-
-    // Define a function for what happens after the user submits the data
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // The user should be navigated to the homepage if they are authenticated
-        navigate('/dashboard')
-    }
-
-    return (
+  return (
+    <div className="login-container">
+        <h2>Login</h2>
         <form onSubmit={handleSubmit}>
-            <input onChange={handleChange} required />Username:
-            <input onChange={handleChange} required />Email:
-            <input onChange={handleChange} required />Password:
-            <button>Login</button>
+        <input
+            placeholder="Email"
+            value={form.login}
+            onChange={(e) => setForm({ ...form, login: e.target.value })}
+            required
+        />
+        <input
+            type="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+        />
+        <button type="submit" disabled={loading}>
+            {loading ? 'Logging in...' : 'Login'}
+        </button>
         </form>
-    )
 
-} 
+        {message && <div className="message">{message}</div>}
+
+        <hr />
+        <button
+        onClick={handleOAuthLogin}
+        className="google-button"
+        disabled={loading}
+        >
+        <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            alt="Google"
+            style={{ width: '20px', height: '20px' }}
+        />
+        {loading ? 'Redirecting...' : 'Login with Google'}
+        </button>
+
+    </div>
+  );
+};
+
+export default LoginForm;

@@ -1,27 +1,42 @@
-import './App.css'
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import { Routes, Route } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
+import './App.css';
 import ProtectedRoute from './components/ProtectedRoute';
+import AuthProvider from './context/AuthProvider';
 import Dashboard from './pages/Dashboard';
+import LoginPage from './pages/LoginPage';
+import OAuthCallback from './pages/OAuthCallback';
+import ProfilePage from './pages/ProfilePage';
+import RegisterPage from './pages/RegisterPage';
 
 function App() {
-
   return (
-    <>
-      /* Public Routes */
+    <AuthProvider>
       <Routes>
-        <Route path="/register" element={<RegisterPage />}/>
-        <Route path="/login" element={<LoginPage />}/>
+        {/* Public Routes */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-      /* Private Route */
-      <ProtectedRoute>
-        <Routes>
-          <Route path="/dashboard" element={<Dashboard />}/>
-        </Routes>
-      </ProtectedRoute>
-    </>
-  )
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
