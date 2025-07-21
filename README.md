@@ -21,6 +21,11 @@ I realized how much I used to struggle in developing the authentication feature 
 <img width="888" height="623" alt="Screenshot 2025-07-17 at 8 06 22 PM" src="https://github.com/user-attachments/assets/7a8da77b-5227-4387-a41a-dede3938e15f" />
 
 
+
+https://github.com/user-attachments/assets/b850d977-bd7f-403a-af1d-bba46228f9ab
+
+
+
 ### Sign Up
 
 Standard Registration
